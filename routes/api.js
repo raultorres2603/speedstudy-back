@@ -121,7 +121,28 @@ router.post("/loginWithGoogle", async function (req, res, next) {
             username: email,
           });
         if (result.insertedId) {
-          res.status(200).json({ token: token });
+          const insertedRec = await client
+            .db("sscards")
+            .collection("users")
+            .aggregate([
+              { $match: { username: email } },
+              {
+                $lookup: {
+                  from: "themes",
+                  localField: "_id",
+                  foreignField: "creator",
+                  as: "themes",
+                },
+              },
+            ])
+            .toArray();
+          const insToken = await new jose.SignJWT({
+            user: insertedRec[0],
+          })
+            .setProtectedHeader({ alg: "HS256" })
+            .setExpirationTime("1h")
+            .sign(new TextEncoder().encode(process.env.SKT));
+          res.status(200).json({ token: insToken });
         } else {
           res.status(501).send("Error on inserting");
         }
