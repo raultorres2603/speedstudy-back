@@ -96,7 +96,7 @@ router.put("/edit/:themeId", async function (req, res, next) {
             { _id: new ObjectId(req.params.themeId) },
             {
               $set: {
-                subThemes: req.body.theme.subThemes,
+                subThemes: req.body.subThemes,
               },
             }
           );
